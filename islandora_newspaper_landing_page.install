@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * islandora_newspaper_landing_page.install
+ * Installs the required object to piggy back the newspaper solution pack.
+ */
+
+/**
+ * Implements hook_requirements().
+ */
+function islandora_newspaper_landing_page_requirements($phase) {
+}
+
+/**
+ * Implements hook_install().
+ *
+ * @see islandora_islandora_required_objects()
+ */
+function islandora_newspaper_landing_page_install() {
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function islandora_newspaper_landing_page_uninstall() {
+}

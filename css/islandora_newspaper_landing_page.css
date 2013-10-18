@@ -1,0 +1,127 @@
+.islandora-content-wrapper {
+  width:900px;
+}
+
+.left-sidebar {
+  position:relative;
+  float:left;
+  width:300px;
+  margin:5px;
+}
+
+.right-sidebar-header {
+  position:relative;
+  float:right;
+  width:575px;
+  height:210px;
+  margin-top:5px;
+  margin-right:5px;
+  margin-bottom:5px;
+}
+
+.widget-1 {
+  float:left;
+  /*position:relative;*/
+  width:150px;
+  height:200px;
+  margin:5px;
+  display:table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+
+.widget-1-image {
+  width:98%;
+  height:auto;
+  margin: 0 auto;
+}
+
+.widget-1-image img {
+  max-width:150px;
+  max-height:200px;
+}
+
+.widget-2 {
+  float:right;
+  text-align:left;
+  width:400px;
+  height:200px;
+  margin:5px;
+}
+
+.widget-2-title {
+  font-size:14pt;
+  /*vertical-align:middle;*/
+  margin:5px;
+  margin-bottom:35px;
+}
+
+.widget-2-content {
+  position:relative;
+  height:45px;
+  margin:10px;
+}
+
+.widget-2-image {
+  position:relative;
+  float:left;
+}
+
+#widget-calendar:before {
+  font-family: entypo;
+  font-size: 2em;
+  content: '\1f4c5';
+  margin-right:15px;
+}
+
+#widget-pages:before {
+  font-family: entypo;
+  font-size: 2em;
+  content: '\1f4f0';
+  margin-right:15px;
+}
+
+.widget-link {
+  margin:5px;
+  margin-top:20px;
+  padding:2px;
+}
+
+.element {
+  padding:10px;
+  margin:5px;
+}
+
+.attribute {
+  font-size:11pt;
+}
+
+.value {
+}
+
+.right-sidebar {
+  position:relative;
+  float:right;
+  width:575px;
+  max-height: 460px;
+  margin:5px;
+  margin-top:15px;
+  padding-bottom:15px;
+  overflow:hidden;
+}
+
+.right-sidebar .read-more {
+  position:absolute;
+  bottom:0;
+  left:0;
+  width:100%;
+  text-align:right;
+  margin:0;
+  padding:30px 0;
+}
+
+.more {
+  position:relative;
+  top:33px;
+  right:10px;
+}

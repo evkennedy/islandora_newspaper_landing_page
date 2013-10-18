@@ -1,0 +1,6 @@
+name = Islandora Newspaper Landing Page
+description = Adds 'About' tab as the landing page for viewing a newspaper object.
+dependencies[] = islandora
+package = Islandora
+core = 7.x
+stylesheets[all][] = css/islandora_newspaper_landing_page.css

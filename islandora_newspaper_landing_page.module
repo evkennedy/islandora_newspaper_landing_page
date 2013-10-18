@@ -1,0 +1,141 @@
+<?php
+
+/**
+ * @file
+ * Hooks and callbacks for this module.
+ */
+function islandora_newspaper_landing_page_menu() {
+  $items = array();
+  $items['islandora/object/%islandora_object/about'] = array(
+    'weight' => -3,
+    'title' => 'About',
+    'page callback' => 'islandora_newspaper_landing_page_view',
+    'page arguments' => array(2),
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => 'islandora_newspaper_landing_page_access',
+    'access arguments' => array(2),
+  );
+  return $items;
+}
+
+/**
+ * Determines whether or not to show this modules tab.
+ *
+ * @global object $user
+ * @param FedoraObject $fedora_object
+ * @return boolean
+ */
+function islandora_newspaper_landing_page_access($fedora_object) {
+  if (!isset($fedora_object)) {
+    return FALSE;
+  }
+
+  $models = $fedora_object->models;
+  // Get the anonymous user.
+  $anonymous_account = user_load(0);
+
+  // Show tab is MODS datastream exists, has newspaperCModel relationship and anonymous account can view objects.
+  if (isset($fedora_object['MODS']) AND $models[0] == "islandora:newspaperCModel" AND user_access(FEDORA_VIEW_OBJECTS, $anonymous_account)) {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
+/**
+ * Theme registry function.
+ *
+ * @param $existing
+ * @param $type
+ * @param $theme
+ * @param $path
+ * @return array
+ */
+function islandora_newspaper_landing_page_theme($existing, $type, $theme, $path) {
+  return array(
+    'islandora_newspaper_landing_page_view' => array(
+      'template' => 'theme/islandora-newspaper-landing-page',
+      'variables' => array('islandora_objects' => NULL),
+    ),
+  );
+}
+
+/**
+ * The newspaper landing page view.
+ *
+ * @param FedoraObject $object
+ * @return string
+ */
+function islandora_newspaper_landing_page_view($object) {
+  $output = theme('islandora_newspaper_landing_page_view', array('islandora_object' => $object));
+  return $output;
+}
+
+/**
+ * Preprocess hook.
+ *
+ * @global string $base_url
+ * @param array $variables
+ */
+function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing_page_view(&$variables) {
+  global $base_url;
+  // Include islandora_newspaper.inc for use of utility functions.
+  module_load_include('inc', 'islandora_newspaper', 'includes/utilities');
+  $islandora_object = $variables['islandora_object'];
+  $mods = $islandora_object['MODS']->content;
+
+  // If object label set, use it as page title
+  if ($islandora_object->label) {
+    drupal_set_title($islandora_object->label);
+  }
+
+  if ($mods) {
+    $mods_doc = new DOMDocument();
+    $mods_doc->loadXML($mods);
+    $mods_xpath = new DOMXPath($mods_doc);
+    $mods_xpath->registerNamespace('m', 'http://www.loc.gov/mods/v3');
+
+    // Extract MODS data for use.
+    $variables['mods']['title'] = $mods_xpath->evaluate('string(//m:mods/m:titleInfo/m:title)');
+    $variables['mods']['place'] = $mods_xpath->evaluate('string(//m:mods/m:originInfo/m:place/m:placeTerm)');
+    $variables['mods']['geographic'] = $mods_xpath->evaluate('string(//m:mods/m:subject/m:geographic)');
+    $variables['mods']['topic'] = $mods_xpath->evaluate('string(//m:mods/m:subject/m:topic)');
+    $variables['mods']['temporal'] = $mods_xpath->evaluate('string(//m:mods/m:subject/m:temporal)');
+    $variables['mods']['publisher'] = $mods_xpath->evaluate('string(//m:mods/m:originInfo/m:publisher)');
+    $variables['mods']['pubDate'] = date('F d, Y', strtotime($mods_xpath->evaluate('string(//m:mods/m:originInfo/m:dateIssued[@point="start"])')));
+    $variables['mods']['frequency'] = $mods_xpath->evaluate('string(//m:mods/m:originInfo/m:frequency[@authority="marcfrequency"])');
+    $variables['mods']['language'] = $mods_xpath->evaluate('string(//m:mods/m:language[@type="text"])');
+    $variables['mods']['note'] = $mods_xpath->evaluate('string(//m:mods/m:note[not(@*)])');
+    $variables['mods']['issn'] = $mods_xpath->evaluate('string(//m:mods/m:identifier[@type="issn"])');
+    $variables['mods']['credit'] = $mods_xpath->evaluate('string(//m:mods/m:note[@type="credit"])');
+    $variables['mods']['prospectus'] = $mods_xpath->evaluate('string(//m:mods/m:note[@type="prospectus"])');
+
+    $preTitles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="preceeding"]/m:titleInfo/m:title');
+    foreach ($preTitles as $item) {
+      $variables['mods']['preceeding'][] = $item->nodeValue;
+    }
+    $sucTitles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="succeeding"]/m:titleInfo/m:title');
+    foreach ($sucTitles as $item) {
+      $variables['mods']['succeeding'][] = $item->nodeValue;
+    }
+  }
+
+  // If a thumbnail of the object exists, use it, else use default folder image.
+  if(isset($islandora_object['TN'])) {
+    $variables['front_cover_image'] = $base_url . "/islandora/object/$islandora_object->id/datastream/TN";
+  } else {
+    $variables['front_cover_image'] = $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/folder.png';
+  }
+
+  $issues = array_keys(islandora_newspaper_get_issues($islandora_object));
+  if($issues) {
+
+    $numIssues = count($issues);
+    $variables['numIssues'] = $numIssues;
+    $variables['first_issue_path'] = $base_url . "/islandora/object/" . $issues[0];
+    $variables['last_issue_path'] = $base_url . "/islandora/object/" . $issues[$numIssues - 1];
+  }
+
+  $variables['front_pages_path'] = $base_url . "/islandora/search/" . rawurlencode("PARENT_title_mt:($islandora_object->label) AND mods_page_number_mt:1?sort=PARENT_dateIssued_dt asc");
+  $variables['view_path'] = $base_url . "/islandora/object/" . $islandora_object->id;
+}
