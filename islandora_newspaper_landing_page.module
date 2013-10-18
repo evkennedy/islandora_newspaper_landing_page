@@ -1,9 +1,9 @@
 <?php
-
 /**
  * @file
  * Hooks and callbacks for this module.
  */
+
 function islandora_newspaper_landing_page_menu() {
   $items = array();
   $items['islandora/object/%islandora_object/about'] = array(
@@ -110,32 +110,33 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
     $variables['mods']['credit'] = $mods_xpath->evaluate('string(//m:mods/m:note[@type="credit"])');
     $variables['mods']['prospectus'] = $mods_xpath->evaluate('string(//m:mods/m:note[@type="prospectus"])');
 
-    $preTitles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="preceeding"]/m:titleInfo/m:title');
-    foreach ($preTitles as $item) {
+    $pre_titles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="preceeding"]/m:titleInfo/m:title');
+    foreach ($pre_titles as $item) {
       $variables['mods']['preceeding'][] = $item->nodeValue;
     }
-    $sucTitles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="succeeding"]/m:titleInfo/m:title');
-    foreach ($sucTitles as $item) {
+    $suc_titles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="succeeding"]/m:titleInfo/m:title');
+    foreach ($suc_titles as $item) {
       $variables['mods']['succeeding'][] = $item->nodeValue;
     }
   }
 
   // If a thumbnail of the object exists, use it, else use default folder image.
-  if(isset($islandora_object['TN'])) {
+  if (isset($islandora_object['TN'])) {
     $variables['front_cover_image'] = $base_url . "/islandora/object/$islandora_object->id/datastream/TN";
-  } else {
+  }
+  else {
     $variables['front_cover_image'] = $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/folder.png';
   }
 
   $issues = array_keys(islandora_newspaper_get_issues($islandora_object));
-  if($issues) {
+  if ($issues) {
 
-    $numIssues = count($issues);
-    $variables['numIssues'] = $numIssues;
+    $num_issues = count($issues);
+    $variables['numIssues'] = $num_issues;
     $variables['first_issue_path'] = $base_url . "/islandora/object/" . $issues[0];
-    $variables['last_issue_path'] = $base_url . "/islandora/object/" . $issues[$numIssues - 1];
+    $variables['last_issue_path'] = $base_url . "/islandora/object/" . $issues[$num_issues - 1];
   }
 
-  $variables['front_pages_path'] = $base_url . "/islandora/search/" . rawurlencode("PARENT_title_mt:($islandora_object->label) AND mods_page_number_mt:1?sort=PARENT_dateIssued_dt asc");
+  $variables['front_pages_path'] = $base_url . "/islandora/search/PARENT_title_mt%3A%28$islandora_object->label%29%20AND%20mods_page_number_mt%3A1?sort=PARENT_dateIssued_dt%20asc";
   $variables['view_path'] = $base_url . "/islandora/object/" . $islandora_object->id;
 }

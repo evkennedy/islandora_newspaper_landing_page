@@ -119,10 +119,10 @@ drupal_add_js(drupal_get_path('module', 'islandora_newspaper_landing_page') . '/
       </div>
 
       <!-- Only show first issue link if at least 1 issue and only show last issue link if > 1 issue. -->
-      <?php if (isset($variables['numIssues'])): ?>
+      <?php if (isset($variables['num_issues'])): ?>
         <div class="widget-2-content">
           <a href="<?php print $variables['first_issue_path']; ?>">First Issue</a>
-          <?php if ($variables['numIssues'] > 1): ?>
+          <?php if ($variables['num_issues'] > 1): ?>
             | <a href="<?php print $variables['last_issue_path']; ?>">Last Issue</a>
           <?php endif; ?>
         </div>
