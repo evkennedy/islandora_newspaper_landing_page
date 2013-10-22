@@ -4,7 +4,6 @@
  * Load the newspaper landing page.
  */
 
-drupal_add_js(drupal_get_path('module', 'islandora_newspaper_landing_page') . '/js/read-more.js');
 ?>
 
 <div class="islandora-content-wrapper">
@@ -104,7 +103,8 @@ drupal_add_js(drupal_get_path('module', 'islandora_newspaper_landing_page') . '/
   <div class="right-sidebar-header">
 
     <div class="widget-1">
-      <div class="widget-1-image"><img src="<?php print $variables['front_cover_image'] ?>"/></div>
+      <!-- <div class="widget-1-image"><img src="<?php //print $variables['front_cover_image'] ?>"/></div> -->
+      <img src="<?php print $variables['front_cover_image'] ?>" />
     </div>
 
     <div class="widget-2">

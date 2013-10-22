@@ -6,7 +6,7 @@
 
 function islandora_newspaper_landing_page_menu() {
   $items = array();
-  $items['islandora/object/%islandora_object/about'] = array(
+  $items['islandora/object/%islandora_object/newspaper_about'] = array(
     'weight' => -3,
     'title' => 'About',
     'page callback' => 'islandora_newspaper_landing_page_view',
@@ -72,13 +72,18 @@ function islandora_newspaper_landing_page_view($object) {
 /**
  * Preprocess hook.
  *
- * @global string $base_url
  * @param array $variables
+ * @global string $base_url
  */
 function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing_page_view(&$variables) {
   global $base_url;
+
   // Include islandora_newspaper.inc for use of utility functions.
   module_load_include('inc', 'islandora_newspaper', 'includes/utilities');
+
+  // Include custom javascript to handle the read more link.
+  drupal_add_js(drupal_get_path('module', 'islandora_newspaper_landing_page') . '/js/read-more.js');
+
   $islandora_object = $variables['islandora_object'];
   $mods = $islandora_object['MODS']->content;
 
