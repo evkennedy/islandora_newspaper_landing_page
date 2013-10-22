@@ -31,11 +31,9 @@ function islandora_newspaper_landing_page_access($fedora_object) {
   }
 
   $models = $fedora_object->models;
-  // Get the anonymous user.
-  $anonymous_account = user_load(0);
 
-  // Show tab is MODS datastream exists, has newspaperCModel relationship and anonymous account can view objects.
-  if (isset($fedora_object['MODS']) AND $models[0] == "islandora:newspaperCModel" AND user_access(FEDORA_VIEW_OBJECTS, $anonymous_account)) {
+  // Show tab if MODS datastream exists and has newspaperCModel relationship.
+  if (isset($fedora_object['MODS']) AND in_array("islandora:newspaperCModel", $models, true)) {
     return TRUE;
   }
 
@@ -132,7 +130,7 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
   if ($issues) {
 
     $num_issues = count($issues);
-    $variables['numIssues'] = $num_issues;
+    $variables['num_issues'] = $num_issues;
     $variables['first_issue_path'] = $base_url . "/islandora/object/" . $issues[0];
     $variables['last_issue_path'] = $base_url . "/islandora/object/" . $issues[$num_issues - 1];
   }

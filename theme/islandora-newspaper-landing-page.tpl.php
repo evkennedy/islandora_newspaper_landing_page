@@ -113,6 +113,7 @@ drupal_add_js(drupal_get_path('module', 'islandora_newspaper_landing_page') . '/
         <div class="widget-2-image" id="widget-calendar"></div>
         <a href="<?php print $variables['view_path'] ?>">Calendar view</a>
       </div>
+
       <div class="widget-2-content">
         <div class="widget-2-image" id="widget-pages"></div>
         <a href="<?php print $variables['front_pages_path'] ?>">All front pages</a>
@@ -138,10 +139,13 @@ drupal_add_js(drupal_get_path('module', 'islandora_newspaper_landing_page') . '/
         About <?php print $variables['mods']['title']; ?>:<br />
         <?php print $variables['mods']['prospectus']; ?>
       </p>
-      <p class="read-more">
-        <a href="#" class="more">Read more...</a>
-      </p>
-      <br /><br />
+      <!-- Only show read more link if character count > 1335. -->
+      <?php if (strlen($variables['mods']['prospectus']) > 1335): ?>
+        <p class="read-more">
+          <a href="#" class="more">Read more...</a>
+        </p>
+        <br /><br />
+      <?php endif; ?>
     </div>
   <?php endif; ?>
   <!-- Right side bar ends. -->
