@@ -1,6 +1,6 @@
 /**
  * @file
-* Handles the 'Read More...' link generated for About on right side bar.
+* Handles the 'Read More...' link generated for About section on right side bar.
  */
 
 var $el, $ps, $up, totalHeight;

@@ -1,3 +1,8 @@
+@font-face {
+  font-family: heyding;
+  src: url('fonts/heydings_icons.ttf');
+}
+
 .islandora-content-wrapper {
   width:900px;
 }
@@ -21,24 +26,21 @@
 
 .widget-1 {
   float:left;
-  /*position:relative;*/
+  position:relative;
   width:150px;
   height:200px;
   margin:5px;
-  display:table-cell;
-  vertical-align: middle;
-  text-align: center;
 }
 
-.widget-1-image {
-  width:98%;
-  height:auto;
-  margin: 0 auto;
-}
-
-.widget-1-image img {
+.widget-1 img {
   max-width:150px;
   max-height:200px;
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:0;
+  margin:auto;
 }
 
 .widget-2 {
@@ -51,7 +53,6 @@
 
 .widget-2-title {
   font-size:14pt;
-  /*vertical-align:middle;*/
   margin:5px;
   margin-bottom:35px;
 }
@@ -68,16 +69,16 @@
 }
 
 #widget-calendar:before {
-  font-family: entypo;
+  font-family: heyding;
   font-size: 2em;
-  content: '\1f4c5';
+  content: "c";
   margin-right:15px;
 }
 
 #widget-pages:before {
-  font-family: entypo;
+  font-family: heyding;
   font-size: 2em;
-  content: '\1f4f0';
+  content: "D";
   margin-right:15px;
 }
 
