@@ -87,11 +87,6 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
   $islandora_object = $variables['islandora_object'];
   $mods = $islandora_object['MODS']->content;
 
-  // If object label set, use it as page title
-  if ($islandora_object->label) {
-    drupal_set_title($islandora_object->label);
-  }
-
   if ($mods) {
     $mods_doc = new DOMDocument();
     $mods_doc->loadXML($mods);
@@ -100,6 +95,7 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
 
     // Extract MODS data for use.
     $variables['mods']['title'] = $mods_xpath->evaluate('string(//m:mods/m:titleInfo/m:title)');
+    $variables['mods']['non_sort'] = $mods_xpath->evaluate('string(//m:mods/m:titleInfo/m:nonSort)');
     $variables['mods']['place'] = $mods_xpath->evaluate('string(//m:mods/m:originInfo/m:place/m:placeTerm)');
     $variables['mods']['geographic'] = $mods_xpath->evaluate('string(//m:mods/m:subject/m:geographic)');
     $variables['mods']['topic'] = $mods_xpath->evaluate('string(//m:mods/m:subject/m:topic)');
@@ -113,15 +109,18 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
     $variables['mods']['credit'] = $mods_xpath->evaluate('string(//m:mods/m:note[@type="credit"])');
     $variables['mods']['prospectus'] = $mods_xpath->evaluate('string(//m:mods/m:note[@type="prospectus"])');
 
-    $pre_titles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="preceeding"]/m:titleInfo/m:title');
+    $pre_titles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="preceding"]/m:titleInfo/m:title');
     foreach ($pre_titles as $item) {
-      $variables['mods']['preceeding'][] = $item->nodeValue;
+      $variables['mods']['preceding'][] = $item->nodeValue;
     }
     $suc_titles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="succeeding"]/m:titleInfo/m:title');
     foreach ($suc_titles as $item) {
       $variables['mods']['succeeding'][] = $item->nodeValue;
     }
   }
+
+  // Set page title, with non sort if available.
+  drupal_set_title($variables['mods']['non_sort'] != "" ? $variables['mods']['non_sort'] . " " . $variables['mods']['title'] : $variables['mods']['title']);
 
   // If a thumbnail of the object exists, use it, else use default folder image.
   if (isset($islandora_object['TN'])) {
