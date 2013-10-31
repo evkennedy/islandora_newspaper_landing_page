@@ -13,7 +13,7 @@
 
     <div class="element">
       <div class="attribute">Title:</div>
-      <div class="value"><?php print $variables['mods']['title']; ?></div>
+      <div class="value"><?php if ($variables['mods']['non_sort'] != "") {print $variables['mods']['non_sort'] . " ";} print $variables['mods']['title']; ?></div>
     </div>
 
     <div class="element">
@@ -65,11 +65,11 @@
     </div>
 
     <div class="element">
-      <div class="attribute">Preceeding Titles:</div>
+      <div class="attribute">Preceding Titles:</div>
       <div class="value">
         <?php
-          if (isset($variables['mods']['preceeding'])) {
-            foreach ($variables['mods']['preceeding'] as $title) {
+          if (isset($variables['mods']['preceding'])) {
+            foreach ($variables['mods']['preceding'] as $title) {
               print $title . "<br />";
             }
           }
@@ -103,12 +103,11 @@
   <div class="right-sidebar-header">
 
     <div class="widget-1">
-      <!-- <div class="widget-1-image"><img src="<?php //print $variables['front_cover_image'] ?>"/></div> -->
       <img src="<?php print $variables['front_cover_image'] ?>" />
     </div>
 
     <div class="widget-2">
-      <div class="widget-2-title"><?php print $variables['mods']['title']; ?></div>
+      <div class="widget-2-title"><?php if ($variables['mods']['non_sort'] != "") {print $variables['mods']['non_sort'] . " ";} print $variables['mods']['title']; ?></div>
       <div class="widget-2-content">
         <div class="widget-2-image" id="widget-calendar"></div>
         <a href="<?php print $variables['view_path'] ?>">Calendar view</a>
@@ -136,7 +135,9 @@
   <?php if (strlen($variables['mods']['prospectus']) > 1): ?>
     <div class="right-sidebar">
       <p>
-        About <?php print $variables['mods']['title']; ?>:<br />
+        <div class="attribute">
+          About <?php if ($variables['mods']['non_sort'] != "") {print $variables['mods']['non_sort'] . " ";} print $variables['mods']['title']; ?>
+        </div>
         <?php print $variables['mods']['prospectus']; ?>
       </p>
       <!-- Only show read more link if character count > 1335. -->
