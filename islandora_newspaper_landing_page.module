@@ -159,7 +159,6 @@ function islandora_newspaper_landing_page_block_info() {
  */
 function islandora_newspaper_landing_page_block_view($delta = '') {
   global $base_url;
-  //$pid = "islandora:newspaperIssueCModel";
   $default_pid = variable_get('islandora_repository_pid', 'islandora:root');
   $block = array();
 
@@ -203,7 +202,6 @@ EOQ;
           $new_pid = $results[array_rand($results)]['pid']['value'];
           $issue_title = $results[array_rand($results)]['title']['value'];
           $new_object = islandora_object_load($new_pid);
-          $block['content'] = "<div class=\"block-body\">$history_date<br/></div>";
 
           if (isset($new_object['TN'])) {
             $thumb = $base_url . "/islandora/object/$new_pid/datastream/TN";
