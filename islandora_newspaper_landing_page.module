@@ -142,3 +142,79 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
   $variables['front_pages_path'] = $base_url . "/islandora/search/PARENT_title_mt%3A%28$islandora_object->label%29%20AND%20mods_page_number_mt%3A1?sort=PARENT_dateIssued_dt%20asc";
   $variables['view_path'] = $base_url . "/islandora/object/" . $islandora_object->id;
 }
+
+/**
+ * Implements hook_block_info().
+ */
+function islandora_newspaper_landing_page_block_info() {
+  $blocks['history'] = array(
+    'info' => t('This Day in History'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function islandora_newspaper_landing_page_block_view($delta = '') {
+  global $base_url;
+  //$pid = "islandora:newspaperIssueCModel";
+  $default_pid = variable_get('islandora_repository_pid', 'islandora:root');
+  $block = array();
+
+  switch ($delta) {
+    case 'history':
+
+      $date = date_create(date('d-m-Y'));
+
+      //$date_segments = array(25, 50, 75, 100);
+      //$pick = $date_segments[array_rand($date_segments)];
+      //$history_date = date_format(date_sub($date, date_interval_create_from_date_string($pick . " years")), "Y-m-d");
+      //$history_date_full = date_format(date_sub($date, date_interval_create_from_date_string($pick . " years")), "MM d, Y");
+
+      $history_date = date_format(date_sub($date, date_interval_create_from_date_string("100 years")), "Y-m-d");
+      $history_date_full = date_format($date, "M d, Y");
+      $history_date_time = $history_date . "T00:00:00Z";
+
+      $query = <<<EOQ
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+PREFIX islandora-rels-ext: <http://islandora.ca/ontology/relsext#>
+PREFIX fedora-rels-ext: <info:fedora/fedora-system:def/relations-external#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+SELECT ?pid ?issued ?title
+  FROM <#ri>
+  WHERE {
+      ?pid <fedora-model:hasModel> <info:fedora/islandora:newspaperIssueCModel> ;
+         <dc:title>?title ;
+         islandora-rels-ext:dateIssued ?issued
+         FILTER ( ?issued = xsd:dateTime('{$history_date_time}'))
+}
+ORDER BY ?issued
+EOQ;
+
+      $object = islandora_object_load($default_pid);
+
+      if($object) {
+        $results = $object->repository->ri->sparqlQuery($query);
+        $block['subject'] = t('This Day in History');
+
+        if($results) {
+          $new_pid = $results[array_rand($results)]['pid']['value'];
+          $issue_title = $results[array_rand($results)]['title']['value'];
+          $new_object = islandora_object_load($new_pid);
+          $block['content'] = "<div class=\"block-body\">$history_date<br/></div>";
+
+          if (isset($new_object['TN'])) {
+            $thumb = $base_url . "/islandora/object/$new_pid/datastream/TN";
+            $path =  $base_url . "/islandora/object/$new_pid";
+            $block['content'] = "<div class=\"block-body\"><a href = \"$path\"><img src = \"$thumb\"><br/>$issue_title</a><br/>$history_date_full</div>";
+          }
+        }
+        else
+           $block['content'] = "<div class = \"block-body\">Content not available.</div>";
+      }
+      break;
+  }
+  return $block;
+}
