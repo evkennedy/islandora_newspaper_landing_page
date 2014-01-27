@@ -139,7 +139,7 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
     $variables['last_issue_path'] = $base_url . "/islandora/object/" . $issues[$num_issues - 1];
   }
 
-  $variables['front_pages_path'] = $base_url . "/islandora/search/PARENT_title_mt%3A%28$islandora_object->label%29%20AND%20mods_page_number_mt%3A1?sort=PARENT_dateIssued_dt%20asc";
+  $variables['front_pages_path'] = $base_url . "/islandora/search/PARENT_title_mt%3A%28$islandora_object->label%29%20AND%20RELS_EXT_isPageNumber_literal_ms%3A1?sort=PARENT_dateIssued_dt%20asc";
   $variables['view_path'] = $base_url . "/islandora/object/" . $islandora_object->id;
 }
 
