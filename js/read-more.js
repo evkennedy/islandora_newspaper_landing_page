@@ -23,7 +23,7 @@ jQuery(document).ready(function(){
   $up
     .css({
       // Set height to prevent instant jump down when max height is removed.
-      "height": ($up.height() + 150),
+      "height": ($up.height() + 180),
       "max-height": 9999
     })
       .animate({

@@ -124,6 +124,10 @@
 
 .more {
   position:relative;
-  top:33px;
+  top:35px;
   right:10px;
+}
+
+.block-body {
+ text-align:center;
 }
