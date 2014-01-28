@@ -33,7 +33,7 @@ function islandora_newspaper_landing_page_access($fedora_object) {
   $models = $fedora_object->models;
 
   // Show tab if MODS datastream exists and has newspaperCModel relationship.
-  if (isset($fedora_object['MODS']) AND in_array("islandora:newspaperCModel", $models, true)) {
+  if (isset($fedora_object['MODS']) AND in_array("islandora:newspaperCModel", $models, TRUE)) {
     return TRUE;
   }
 
@@ -111,11 +111,13 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
 
     $pre_titles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="preceding"]/m:titleInfo/m:title');
     foreach ($pre_titles as $item) {
-      $variables['mods']['preceding'][] = $item->nodeValue;
+      if ($item->nodeValue)
+        $variables['mods']['preceding'][] = $item->nodeValue;
     }
     $suc_titles = $mods_xpath->evaluate('//m:mods/m:relatedItem[@type="succeeding"]/m:titleInfo/m:title');
     foreach ($suc_titles as $item) {
-      $variables['mods']['succeeding'][] = $item->nodeValue;
+      if ($item->nodeValue)
+        $variables['mods']['succeeding'][] = $item->nodeValue;
     }
   }
 
@@ -132,7 +134,6 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
 
   $issues = array_keys(islandora_newspaper_get_issues($islandora_object));
   if ($issues) {
-
     $num_issues = count($issues);
     $variables['num_issues'] = $num_issues;
     $variables['first_issue_path'] = $base_url . "/islandora/object/" . $issues[0];
@@ -151,68 +152,188 @@ function islandora_newspaper_landing_page_block_info() {
     'info' => t('This Day in History'),
     'cache' => DRUPAL_NO_CACHE,
   );
+  $blocks['alphabetnews'] = array(
+    'info' => t('Alphabetical Newspapers'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
   return $blocks;
 }
+
 
 /**
  * Implements hook_block_view().
  */
+
 function islandora_newspaper_landing_page_block_view($delta = '') {
   global $base_url;
-  $default_pid = variable_get('islandora_repository_pid', 'islandora:root');
   $block = array();
 
   switch ($delta) {
     case 'history':
-
+      // Get date formats.
       $date = date_create(date('d-m-Y'));
-
-      //$date_segments = array(25, 50, 75, 100);
-      //$pick = $date_segments[array_rand($date_segments)];
-      //$history_date = date_format(date_sub($date, date_interval_create_from_date_string($pick . " years")), "Y-m-d");
-      //$history_date_full = date_format(date_sub($date, date_interval_create_from_date_string($pick . " years")), "MM d, Y");
-
       $history_date = date_format(date_sub($date, date_interval_create_from_date_string("100 years")), "Y-m-d");
-      $history_date_full = date_format($date, "M d, Y");
+      $history_date_full = date_format($date, "F d, Y");
       $history_date_time = $history_date . "T00:00:00Z";
 
-      $query = <<<EOQ
-PREFIX dc: <http://purl.org/dc/elements/1.1/>
-PREFIX islandora-rels-ext: <http://islandora.ca/ontology/relsext#>
-PREFIX fedora-rels-ext: <info:fedora/fedora-system:def/relations-external#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-SELECT ?pid ?issued ?title
-  FROM <#ri>
-  WHERE {
-      ?pid <fedora-model:hasModel> <info:fedora/islandora:newspaperIssueCModel> ;
-         <dc:title>?title ;
-         islandora-rels-ext:dateIssued ?issued
-         FILTER ( ?issued = xsd:dateTime('{$history_date_time}'))
-}
-ORDER BY ?issued
-EOQ;
+      // Solr query.
+      $solr_handler = variable_get('islandora_solr_request_handler', FALSE);
+      $namespaces_enforced = variable_get('islandora_namespace_restriction_enforced', FALSE);
+      $path_parts = parse_url(variable_get('islandora_solr_url', 'localhost:8080/solr'));
+      $solr = new Apache_Solr_Service($path_parts['host'], $path_parts['port'], $path_parts['path'] . '/');
+      $solr->setCreateDocuments(0);
+      $cmodel = $solr->escape('islandora:newspaperIssueCModel');
+      $history_date_time = $solr->escape($history_date_time);
+      $solr_query = "content_model_ms:$cmodel AND mods_originInfo_dateIssued_dt:$history_date_time";
+      $solr_params = array();
+      $solr_params['fl'][] = "PID, mods_originInfo_dateIssued_dt, mods_titleInfo_nonSort_ms, mods_titleInfo_title_ms";
+      $solr_params['sort'] = array('mods_originInfo_dateIssued_dt' . ' asc');
 
-      $object = islandora_object_load($default_pid);
+      if ($solr_handler) {
+        $solr_params['qt'] = $solr_handler;
+      }
 
-      if($object) {
-        $results = $object->repository->ri->sparqlQuery($query);
-        $block['subject'] = t('This Day in History');
+      if ($namespaces_enforced) {
+        $namespace_list = trim(variable_get('islandora_pids_allowed', ''));
+        if ($namespace_list) {
+          $namespaces = preg_split('/[,|\s]/', $namespace_list);
+          $namespace_array = array();
+          foreach (array_filter($namespaces) as $namespace) {
+            $namespace_array[] = 'PID:' . Apache_Solr_Service::escape($namespace) . '*';
+          }
+          $solr_params['fq'][] = implode(' OR ', $namespace_array);
+        }
+      }
 
-        if($results) {
-          $new_pid = $results[array_rand($results)]['pid']['value'];
-          $issue_title = $results[array_rand($results)]['title']['value'];
-          $new_object = islandora_object_load($new_pid);
+      try {
+        $start = 0;
+        $max_results = 5;
+        $method = 'GET';
+        $results = $solr->search($solr_query, $start, $max_results, $solr_params, $method);
+      }
+      catch (Exception $e) {
+        watchdog('islandora_newspaper_landing_page', 'Error getting solr results %e',
+          array('%e' => $e->getMessage()));
+      }
 
-          if (isset($new_object['TN'])) {
+      $solr_results = NULL;
+      if (!empty($results)) {
+        $solr_results = json_decode($results->getRawResponse(), TRUE);
+      }
+
+      $block['subject'] = t('This Day in History');
+
+      if ($solr_results['response']['docs']) {
+
+        // Choose random result if more than 1 newspaper have issues for this day.
+        $random_pick = array_rand($solr_results['response']['docs']);
+        $new_pid = $solr_results['response']['docs'][$random_pick]['PID'];
+        $title = $solr_results['response']['docs'][$random_pick]['mods_titleInfo_nonSort_ms'][0] . " " . $solr_results['response']['docs'][0]['mods_titleInfo_title_ms'][0];
+
+        // Get the random object selected.
+        $object = islandora_object_load($new_pid);
+
+        if($object) {
+          $path =  $base_url . "/islandora/object/$new_pid";
+          if (isset($object['TN'])) {
             $thumb = $base_url . "/islandora/object/$new_pid/datastream/TN";
-            $path =  $base_url . "/islandora/object/$new_pid";
-            $block['content'] = "<div class=\"block-body\"><a href = \"$path\"><img src = \"$thumb\"><br/>$issue_title</a><br/>$history_date_full</div>";
+            $block['content'] = "<div class=\"block-body\"><a href = \"$path\"><img src = \"$thumb\"><br/>$title</a><br/>$history_date_full</div>";
+          }
+          else {
+            $block['content'] = "<div class=\"block-body\"><a href = \"$path\">$title</a><br/>$history_date_full</div>";
           }
         }
-        else
-           $block['content'] = "<div class = \"block-body\">Content not available.</div>";
       }
-      break;
+      else
+        $block['content'] = "<div class = \"block-body\">Content not available.</div>";
+    break;
+
+    case "alphabetnews":
+
+      // Solr query.
+      $solr_handler = variable_get('islandora_solr_request_handler', FALSE);
+      $namespaces_enforced = variable_get('islandora_namespace_restriction_enforced', FALSE);
+      $path_parts = parse_url(variable_get('islandora_solr_url', 'localhost:8080/solr'));
+      $solr = new Apache_Solr_Service($path_parts['host'], $path_parts['port'], $path_parts['path'] . '/');
+      $solr->setCreateDocuments(0);
+      $cmodel = $solr->escape('islandora:newspaperCModel');
+      //$history_date_time = $solr->escape($history_date_time);
+      $solr_query = "content_model_ms:$cmodel";
+      $solr_params = array();
+      //$solr_params['fl'][] = "PID, fgs_label_s, mods_titleInfo_nonSort_ms, mods_titleInfo_title_ms";
+      $solr_params['fl'][] = "PID, fgs_label_s";
+      $solr_params['sort'] = array('fgs_label_s' . ' asc');
+
+      if ($solr_handler) {
+        $solr_params['qt'] = $solr_handler;
+      }
+
+      if ($namespaces_enforced) {
+        $namespace_list = trim(variable_get('islandora_pids_allowed', ''));
+        if ($namespace_list) {
+          $namespaces = preg_split('/[,|\s]/', $namespace_list);
+          $namespace_array = array();
+          foreach (array_filter($namespaces) as $namespace) {
+            $namespace_array[] = 'PID:' . Apache_Solr_Service::escape($namespace) . '*';
+          }
+          $solr_params['fq'][] = implode(' OR ', $namespace_array);
+        }
+      }
+
+      try {
+        $start = 0;
+        $max_results = 200;
+        $method = 'GET';
+        $results = $solr->search($solr_query, $start, $max_results, $solr_params, $method);
+      }
+      catch (Exception $e) {
+        watchdog('islandora_newspaper_landing_page', 'Error getting solr results %e',
+          array('%e' => $e->getMessage()));
+      }
+
+      $solr_results = NULL;
+      if (!empty($results)) {
+        $solr_results = json_decode($results->getRawResponse(), TRUE);
+      }
+
+      //dpr($solr_results);
+
+      if ($solr_results['response']['docs']) {
+
+        foreach($solr_results['response']['docs'] as $newspaper) {
+          //if($newspaper['mods_titleInfo_title_ms'][0])
+          if($newspaper['fgs_label_s'][0])
+            $alpha_list[$newspaper['fgs_label_s'][0]][$newspaper['PID']] = $newspaper['fgs_label_s'];
+          //$alpha_list[$newspaper['fgs_label_s'][0]][$newspaper['fgs_label_s'][0]] = $newspaper['PID'];
+         }
+
+        //asort($alpha_list);
+        //ksort($alpha_list);
+      }
+
+      //asort($alpha_list);
+      //dpr($alpha_list);
+
+      $block['subject'] = t('Alphabetical Newspapers');
+      $block['content'] = "";
+
+      foreach($alpha_list as $letter => $paper) {
+        $block['content'] .= "<div class=\"titles-block-body\"><div class=\"letter-block\">$letter</div><div class=\"titles-block\">";
+        foreach($paper as $pid => $alpha_title) {
+
+          // Get the random object selected.
+          $object = islandora_object_load($pid);
+
+          if($object) {
+            $path =  $base_url . "/islandora/object/$pid";
+            $block['content'] .= "<div><a href=\"$path\">$alpha_title</a></div>";
+          }
+        }
+        $block['content'] .= "</div></div>";
+
+      }
+    break;
   }
   return $block;
 }
+

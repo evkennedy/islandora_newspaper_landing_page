@@ -123,11 +123,24 @@
 }
 
 .more {
+  background-color:#f4f4f4;
+  padding-left:40px;
   position:relative;
-  top:35px;
-  right:10px;
+  top:28px;
 }
 
 .block-body {
- text-align:center;
+  text-align:center;
+}
+
+.letter-block {
+  font-size:16pt;
+  font-weight:bold;
+
+}
+
+.titles-block-body {
+  /*font-size:11pt;*/
+  padding-bottom:12px;
+  /*border:1px solid;*/
 }

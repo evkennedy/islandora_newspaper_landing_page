@@ -9,11 +9,11 @@ jQuery(document).ready(function(){
 
   jQuery(".more").click(function(){
 
-  totalHeight = 0
+  totalHeight = 0;
   $el = jQuery(this);
   $p  = $el.parent();
   $up = $p.parent();
-  $ps = $up.find("p:not('.read-more')");
+  $ps = $up.find("p:not('.testing')");
 
   // Measure how high inside by adding together heights of all inside paragraphs (except read-more).
   $ps.each(function() {
@@ -23,7 +23,7 @@ jQuery(document).ready(function(){
   $up
     .css({
       // Set height to prevent instant jump down when max height is removed.
-      "height": ($up.height() + 180),
+      "height": ($up.height() + 160),
       "max-height": 9999
     })
       .animate({
