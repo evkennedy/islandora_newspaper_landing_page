@@ -4,9 +4,6 @@
  * Hooks and callbacks for this module.
  */
 
-// Includes functions for connecting to Solr and Luke.
-//require_once dirname(__FILE__) . '/includes/luke.inc';
-
 function islandora_newspaper_landing_page_menu() {
   $items = array();
   $items['islandora/object/%islandora_object/newspaper_about'] = array(
@@ -18,17 +15,6 @@ function islandora_newspaper_landing_page_menu() {
     'access callback' => 'islandora_newspaper_landing_page_access',
     'access arguments' => array(2),
   );
-  /*
-  $items['admin/islandora/newspaper'] = array(
-    'title' => 'Newspaper Collection',
-    'description' => 'Configure the Newspaper Solution Pack.',
-    'page callback' => 'drupal_get_form',
-    'access arguments' => array('administer site configuration'),
-    'page arguments' => array('islandora_newspaper_admin_settings_form'),
-    'file' => 'includes/admin.form.inc',
-    'type' => MENU_NORMAL_ITEM,
-  );
-  */
   $items['admin/islandora/landing_page'] = array(
     'title' => 'Newspaper Landing Page',
     'description' => 'Configure the Newspaper Landing Page.',
@@ -38,14 +24,6 @@ function islandora_newspaper_landing_page_menu() {
     'file' => 'islandora_newspaper_landing_page.admin.inc',
     //'type' => MENU_LOCAL_TASK,
     'type' => MENU_NORMAL_ITEM,
-  );
-  $items['landing_page/autocomplete_luke'] = array(
-    'title' => 'Islandora Newspaper Landing Page Luke autocomplete',
-    'description' => 'Autocomplete callback to populate solr text fields.',
-    'page callback' => '_islandora_solr_autocomplete_luke',
-    'access arguments' => array('administer islandora solr'),
-    'file' => 'includes/admin.inc',
-    'type' => MENU_CALLBACK,
   );
   return $items;
 }
@@ -298,16 +276,6 @@ function islandora_newspaper_landing_page_block_view($delta = '') {
     case "social":
 
       $block['subject'] = t('Social Media');
-
-      /* Add social media icons
-      $block['content'] .=
-      "<br/>
-      <div class=\"social-icons\">
-        <a href=\"http://peinewspapers.tumblr.com/\" tumblr-icon=\"&#62230;\"></a>
-        <a href=\"https://twitter.com/peinewspapers\" twitter-icon=\"&#62217;\"></a>
-        <a href=\"https://www.facebook.com/dailynewspaperpei\" facebook-icon=\"&#62222;\"></a>
-      </div>";
-      */
 
       // Add social media images
       $image_dir = $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/';
