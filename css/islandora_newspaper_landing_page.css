@@ -94,6 +94,7 @@
 .social-icons img {
   width: 2em;
   height: auto;
+  padding-top:10px;
   padding-left:3px;
   padding-right:3px;
 }
