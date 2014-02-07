@@ -1,7 +1,24 @@
 @font-face {
-  font-family: heyding;
-  src: url('fonts/heydings_icons.ttf');
+  font-family: 'heydings_iconsregular';
+  src: url('fonts/heydings_icons-webfont.eot');
+  src: url('fonts/heydings_icons-webfont.eot?#iefix') format('embedded-opentype'),
+  url('fonts/heydings_icons-webfont.woff') format('woff'),
+  url('fonts/heydings_icons-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
 }
+
+/* use social media icons font
+@font-face {
+  font-family: 'EntypoSocialRegular';
+  src: url('fonts/entypo-social.eot');
+  src: url('fonts/entypo-social.eot?#iefix') format('embedded-opentype'),
+  url('fonts/entypo-social.woff') format('woff'),
+  url('fonts/entypo-social.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+*/
 
 .islandora-content-wrapper {
   width:900px;
@@ -69,17 +86,63 @@
 }
 
 #widget-calendar:before {
-  font-family: heyding;
+  font-family: heydings_iconsregular;
   font-size: 2em;
   content: "c";
   margin-right:15px;
 }
 
 #widget-pages:before {
-  font-family: heyding;
+  font-family: heydings_iconsregular;
   font-size: 2em;
   content: "D";
   margin-right:15px;
+}
+
+.social-icons {
+  text-align:center;
+}
+
+.social-icons img {
+  width: 2em;
+  height: auto;
+  padding-top:10px;
+  padding-left:3px;
+  padding-right:3px;
+}
+
+/* for use with social media font icons
+.social-icons a:link {text-decoration:none;}
+.social-icons a:visited {text-decoration:none;}
+.social-icons a:hover {text-decoration:none;}
+.social-icons a:active {text-decoration:none;}
+*/
+
+[tumblr-icon]:before {
+  font-family: EntypoSocialRegular;
+  content: attr(tumblr-icon);
+  font-size: 4em;
+  color:#2C4762;
+  padding-left:4px;
+  padding-right:8px;
+}
+
+[twitter-icon]:before {
+  font-family: EntypoSocialRegular;
+  content: attr(twitter-icon);
+  font-size: 4em;
+  color:#7BB6BA;
+  /*padding-left:4px;*/
+  /*padding-right:8px;*/
+}
+
+[facebook-icon]:before {
+  font-family: EntypoSocialRegular;
+  content: attr(facebook-icon);
+  font-size: 4em;
+  color:#3B5998;
+  padding-left:6px;
+  padding-right:4px;
 }
 
 .widget-link {
@@ -98,18 +161,16 @@
   font-weight:bold;
 }
 
-.value {
-}
-
 .right-sidebar {
   position:relative;
   float:right;
   width:575px;
-  max-height: 460px;
+  max-height: 218px;
   margin:5px;
   margin-top:15px;
   padding-bottom:15px;
   overflow:hidden;
+  /*border:3px solid red;*/
 }
 
 .right-sidebar .read-more {
@@ -123,9 +184,9 @@
 }
 
 .more {
-  background-color:#f4f4f4;
   padding-left:40px;
   position:relative;
+  float:right;
   top:28px;
 }
 
@@ -140,7 +201,5 @@
 }
 
 .titles-block-body {
-  /*font-size:11pt;*/
   padding-bottom:12px;
-  /*border:1px solid;*/
 }

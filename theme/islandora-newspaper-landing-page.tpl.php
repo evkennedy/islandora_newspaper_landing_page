@@ -179,23 +179,14 @@
   <!-- Right side bar begins, if prospectus text available. -->
   <?php if (strlen($variables['mods']['prospectus']) > 1): ?>
     <div class="right-sidebar">
-        <!--
-        <div class="attribute">
-          About <?php //if ($variables['mods']['non_sort'] != "") {print $variables['mods']['non_sort'] . " ";} print $variables['mods']['title']; ?>
-        </div>
-        -->
       <p>
         <b>About <?php if ($variables['mods']['non_sort'] != "") {print $variables['mods']['non_sort'] . " ";} print $variables['mods']['title']; ?></b>
         <br/>
         <?php print $variables['mods']['prospectus']; ?>
       </p>
-      <!-- Only show read more link if character count > 1335. -->
-      <?php if (strlen($variables['mods']['prospectus']) > 1335): ?>
-        <p class="read-more">
-          <a href="#" class="more">Read more...</a>
-        </p>
-        <br /><br />
-      <?php endif; ?>
+    </div>
+    <div class="readandmore">
+      <a href="#" class="more">Read more...</a>
     </div>
   <?php endif; ?>
   <!-- Right side bar ends. -->

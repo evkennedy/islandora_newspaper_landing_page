@@ -4,6 +4,9 @@
  * Hooks and callbacks for this module.
  */
 
+// Includes functions for connecting to Solr and Luke.
+//require_once dirname(__FILE__) . '/includes/luke.inc';
+
 function islandora_newspaper_landing_page_menu() {
   $items = array();
   $items['islandora/object/%islandora_object/newspaper_about'] = array(
@@ -14,6 +17,35 @@ function islandora_newspaper_landing_page_menu() {
     'type' => MENU_LOCAL_TASK,
     'access callback' => 'islandora_newspaper_landing_page_access',
     'access arguments' => array(2),
+  );
+  /*
+  $items['admin/islandora/newspaper'] = array(
+    'title' => 'Newspaper Collection',
+    'description' => 'Configure the Newspaper Solution Pack.',
+    'page callback' => 'drupal_get_form',
+    'access arguments' => array('administer site configuration'),
+    'page arguments' => array('islandora_newspaper_admin_settings_form'),
+    'file' => 'includes/admin.form.inc',
+    'type' => MENU_NORMAL_ITEM,
+  );
+  */
+  $items['admin/islandora/landing_page'] = array(
+    'title' => 'Newspaper Landing Page',
+    'description' => 'Configure the Newspaper Landing Page.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_newspaper_landing_page_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'islandora_newspaper_landing_page.admin.inc',
+    //'type' => MENU_LOCAL_TASK,
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['landing_page/autocomplete_luke'] = array(
+    'title' => 'Islandora Newspaper Landing Page Luke autocomplete',
+    'description' => 'Autocomplete callback to populate solr text fields.',
+    'page callback' => '_islandora_solr_autocomplete_luke',
+    'access arguments' => array('administer islandora solr'),
+    'file' => 'includes/admin.inc',
+    'type' => MENU_CALLBACK,
   );
   return $items;
 }
@@ -140,7 +172,10 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
     $variables['last_issue_path'] = $base_url . "/islandora/object/" . $issues[$num_issues - 1];
   }
 
-  $variables['front_pages_path'] = $base_url . "/islandora/search/PARENT_title_mt%3A%28$islandora_object->label%29%20AND%20RELS_EXT_isPageNumber_literal_ms%3A1?sort=PARENT_dateIssued_dt%20asc";
+  $sort_field = variable_get('islandora_newspaper_landing_page_sort_field', 'PARENT_dateIssued_dt');
+  $sort_order = variable_get('islandora_newspaper_landing_page_sort_order', 'asc');
+
+  $variables['front_pages_path'] = $base_url . "/islandora/search/PARENT_title_mt%3A%28$islandora_object->label%29%20AND%20RELS_EXT_isPageNumber_literal_ms%3A1?sort=$sort_field%20$sort_order";
   $variables['view_path'] = $base_url . "/islandora/object/" . $islandora_object->id;
 }
 
@@ -159,14 +194,13 @@ function islandora_newspaper_landing_page_block_info() {
   return $blocks;
 }
 
-
 /**
  * Implements hook_block_view().
  */
-
 function islandora_newspaper_landing_page_block_view($delta = '') {
   global $base_url;
   $block = array();
+  date_default_timezone_set('America/Halifax');
 
   switch ($delta) {
     case 'history':
@@ -237,7 +271,11 @@ function islandora_newspaper_landing_page_block_view($delta = '') {
           $path =  $base_url . "/islandora/object/$new_pid";
           if (isset($object['TN'])) {
             $thumb = $base_url . "/islandora/object/$new_pid/datastream/TN";
-            $block['content'] = "<div class=\"block-body\"><a href = \"$path\"><img src = \"$thumb\"><br/>$title</a><br/>$history_date_full</div>";
+
+            $block['content'] =
+              "<div class=\"block-body\">
+                <a href = \"$path\"><img src = \"$thumb\"><br/>$title</a><br/>$history_date_full
+              </div>";
           }
           else {
             $block['content'] = "<div class=\"block-body\"><a href = \"$path\">$title</a><br/>$history_date_full</div>";
@@ -246,6 +284,27 @@ function islandora_newspaper_landing_page_block_view($delta = '') {
       }
       else
         $block['content'] = "<div class = \"block-body\">Content not available.</div>";
+
+      /* Add social media icons
+      $block['content'] .=
+      "<br/>
+      <div class=\"social-icons\">
+        <a href=\"http://peinewspapers.tumblr.com/\" tumblr-icon=\"&#62230;\"></a>
+        <a href=\"https://twitter.com/peinewspapers\" twitter-icon=\"&#62217;\"></a>
+        <a href=\"https://www.facebook.com/dailynewspaperpei\" facebook-icon=\"&#62222;\"></a>
+      </div>";
+      */
+
+      // Add social media images
+      $image_dir = $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/';
+
+      $block['content'] .=
+        "<div class=\"social-icons\">
+          <a href=\"http://peinewspapers.tumblr.com/\"><img src=$image_dir" . 'tumblr.png' . " /></a>
+          <a href=\"https://twitter.com/peinewspapers\"><img src=" . $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/twitter.png' . " /></a>
+          <a href=\"https://www.facebook.com/dailynewspaperpei\"><img src=" . $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/facebook.png' . " /></a>
+        </div>";
+
     break;
 
     case "alphabetnews":
@@ -257,10 +316,8 @@ function islandora_newspaper_landing_page_block_view($delta = '') {
       $solr = new Apache_Solr_Service($path_parts['host'], $path_parts['port'], $path_parts['path'] . '/');
       $solr->setCreateDocuments(0);
       $cmodel = $solr->escape('islandora:newspaperCModel');
-      //$history_date_time = $solr->escape($history_date_time);
       $solr_query = "content_model_ms:$cmodel";
       $solr_params = array();
-      //$solr_params['fl'][] = "PID, fgs_label_s, mods_titleInfo_nonSort_ms, mods_titleInfo_title_ms";
       $solr_params['fl'][] = "PID, fgs_label_s";
       $solr_params['sort'] = array('fgs_label_s' . ' asc');
 
@@ -296,23 +353,13 @@ function islandora_newspaper_landing_page_block_view($delta = '') {
         $solr_results = json_decode($results->getRawResponse(), TRUE);
       }
 
-      //dpr($solr_results);
-
       if ($solr_results['response']['docs']) {
 
         foreach($solr_results['response']['docs'] as $newspaper) {
-          //if($newspaper['mods_titleInfo_title_ms'][0])
           if($newspaper['fgs_label_s'][0])
             $alpha_list[$newspaper['fgs_label_s'][0]][$newspaper['PID']] = $newspaper['fgs_label_s'];
-          //$alpha_list[$newspaper['fgs_label_s'][0]][$newspaper['fgs_label_s'][0]] = $newspaper['PID'];
-         }
-
-        //asort($alpha_list);
-        //ksort($alpha_list);
+        }
       }
-
-      //asort($alpha_list);
-      //dpr($alpha_list);
 
       $block['subject'] = t('Alphabetical Newspapers');
       $block['content'] = "";

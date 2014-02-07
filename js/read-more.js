@@ -3,36 +3,20 @@
 * Handles the 'Read More...' link generated for About section on right side bar.
  */
 
-var $el, $ps, $up, totalHeight;
-
 jQuery(document).ready(function(){
 
-  jQuery(".more").click(function(){
+    jQuery(".more").click(function(){
 
-  totalHeight = 0;
-  $el = jQuery(this);
-  $p  = $el.parent();
-  $up = $p.parent();
-  $ps = $up.find("p:not('.testing')");
+      jQuery( ".more" ).css( "display", "none" );
 
-  // Measure how high inside by adding together heights of all inside paragraphs (except read-more).
-  $ps.each(function() {
-    totalHeight += jQuery(this).outerHeight();
-  });
+      jQuery( ".right-sidebar" )
+        .css({
+          overflow : 'visible',
+          'max-height' : '9999px'
+        });
 
-  $up
-    .css({
-      // Set height to prevent instant jump down when max height is removed.
-      "height": ($up.height() + 160),
-      "max-height": 9999
-    })
-      .animate({
-        "height": totalHeight
-    });
+      jQuery( ".right-sidebar" ).animate({ "height": "auto" });
 
-    // Fade out read-more.
-    $p.fadeOut();
-
-    return false;
+      return false;
     })
 });
