@@ -183,14 +183,22 @@ function islandora_newspaper_landing_page_preprocess_islandora_newspaper_landing
  * Implements hook_block_info().
  */
 function islandora_newspaper_landing_page_block_info() {
+
   $blocks['history'] = array(
     'info' => t('This Day in History'),
     'cache' => DRUPAL_NO_CACHE,
   );
+
   $blocks['alphabetnews'] = array(
     'info' => t('Alphabetical Newspapers'),
     'cache' => DRUPAL_NO_CACHE,
   );
+
+  $blocks['social'] = array(
+    'info' => t('Social Media'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
   return $blocks;
 }
 
@@ -285,6 +293,12 @@ function islandora_newspaper_landing_page_block_view($delta = '') {
       else
         $block['content'] = "<div class = \"block-body\">Content not available.</div>";
 
+    break;
+
+    case "social":
+
+      $block['subject'] = t('Social Media');
+
       /* Add social media icons
       $block['content'] .=
       "<br/>
@@ -298,7 +312,7 @@ function islandora_newspaper_landing_page_block_view($delta = '') {
       // Add social media images
       $image_dir = $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/';
 
-      $block['content'] .=
+      $block['content'] =
         "<div class=\"social-icons\">
           <a href=\"http://peinewspapers.tumblr.com/\"><img src=$image_dir" . 'tumblr.png' . " /></a>
           <a href=\"https://twitter.com/peinewspapers\"><img src=" . $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/twitter.png' . " /></a>
