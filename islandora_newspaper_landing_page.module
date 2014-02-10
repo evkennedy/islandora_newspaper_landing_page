@@ -7,6 +7,9 @@
 // Includes functions for connecting to Solr and Luke.
 //require_once dirname(__FILE__) . '/includes/luke.inc';
 
+// Include functions for connecting to Solr and Luke.
+module_load_include('inc', 'islandora_solr_search', 'includes/luke');
+
 function islandora_newspaper_landing_page_menu() {
   $items = array();
   $items['islandora/object/%islandora_object/newspaper_about'] = array(
@@ -42,9 +45,9 @@ function islandora_newspaper_landing_page_menu() {
   $items['landing_page/autocomplete_luke'] = array(
     'title' => 'Islandora Newspaper Landing Page Luke autocomplete',
     'description' => 'Autocomplete callback to populate solr text fields.',
-    'page callback' => '_islandora_solr_autocomplete_luke',
+    'page callback' => '_islandora_newspaper_landing_page_autocomplete_luke',
     'access arguments' => array('administer islandora solr'),
-    'file' => 'includes/admin.inc',
+    'file' => 'islandora_newspaper_landing_page.admin.inc',
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -187,10 +190,6 @@ function islandora_newspaper_landing_page_block_info() {
     'info' => t('This Day in History'),
     'cache' => DRUPAL_NO_CACHE,
   );
-  $blocks['alphabetnews'] = array(
-    'info' => t('Alphabetical Newspapers'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
   return $blocks;
 }
 
@@ -301,84 +300,10 @@ function islandora_newspaper_landing_page_block_view($delta = '') {
       $block['content'] .=
         "<div class=\"social-icons\">
           <a href=\"http://peinewspapers.tumblr.com/\"><img src=$image_dir" . 'tumblr.png' . " /></a>
-          <a href=\"https://twitter.com/peinewspapers\"><img src=" . $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/twitter.png' . " /></a>
-          <a href=\"https://www.facebook.com/dailynewspaperpei\"><img src=" . $base_url . '/' . drupal_get_path('module', 'islandora_newspaper_landing_page') . '/images/facebook.png' . " /></a>
+          <a href=\"https://twitter.com/peinewspapers\"><img src=$image_dir" . 'twitter.png' . " /></a>
+          <a href=\"https://www.facebook.com/dailynewspaperpei\"><img src=$image_dir" . 'facebook.png' . " /></a>
         </div>";
 
-    break;
-
-    case "alphabetnews":
-
-      // Solr query.
-      $solr_handler = variable_get('islandora_solr_request_handler', FALSE);
-      $namespaces_enforced = variable_get('islandora_namespace_restriction_enforced', FALSE);
-      $path_parts = parse_url(variable_get('islandora_solr_url', 'localhost:8080/solr'));
-      $solr = new Apache_Solr_Service($path_parts['host'], $path_parts['port'], $path_parts['path'] . '/');
-      $solr->setCreateDocuments(0);
-      $cmodel = $solr->escape('islandora:newspaperCModel');
-      $solr_query = "content_model_ms:$cmodel";
-      $solr_params = array();
-      $solr_params['fl'][] = "PID, fgs_label_s";
-      $solr_params['sort'] = array('fgs_label_s' . ' asc');
-
-      if ($solr_handler) {
-        $solr_params['qt'] = $solr_handler;
-      }
-
-      if ($namespaces_enforced) {
-        $namespace_list = trim(variable_get('islandora_pids_allowed', ''));
-        if ($namespace_list) {
-          $namespaces = preg_split('/[,|\s]/', $namespace_list);
-          $namespace_array = array();
-          foreach (array_filter($namespaces) as $namespace) {
-            $namespace_array[] = 'PID:' . Apache_Solr_Service::escape($namespace) . '*';
-          }
-          $solr_params['fq'][] = implode(' OR ', $namespace_array);
-        }
-      }
-
-      try {
-        $start = 0;
-        $max_results = 200;
-        $method = 'GET';
-        $results = $solr->search($solr_query, $start, $max_results, $solr_params, $method);
-      }
-      catch (Exception $e) {
-        watchdog('islandora_newspaper_landing_page', 'Error getting solr results %e',
-          array('%e' => $e->getMessage()));
-      }
-
-      $solr_results = NULL;
-      if (!empty($results)) {
-        $solr_results = json_decode($results->getRawResponse(), TRUE);
-      }
-
-      if ($solr_results['response']['docs']) {
-
-        foreach($solr_results['response']['docs'] as $newspaper) {
-          if($newspaper['fgs_label_s'][0])
-            $alpha_list[$newspaper['fgs_label_s'][0]][$newspaper['PID']] = $newspaper['fgs_label_s'];
-        }
-      }
-
-      $block['subject'] = t('Alphabetical Newspapers');
-      $block['content'] = "";
-
-      foreach($alpha_list as $letter => $paper) {
-        $block['content'] .= "<div class=\"titles-block-body\"><div class=\"letter-block\">$letter</div><div class=\"titles-block\">";
-        foreach($paper as $pid => $alpha_title) {
-
-          // Get the random object selected.
-          $object = islandora_object_load($pid);
-
-          if($object) {
-            $path =  $base_url . "/islandora/object/$pid";
-            $block['content'] .= "<div><a href=\"$path\">$alpha_title</a></div>";
-          }
-        }
-        $block['content'] .= "</div></div>";
-
-      }
     break;
   }
   return $block;

@@ -15,7 +15,7 @@ function islandora_newspaper_landing_page_admin_settings($form, &$form_state) {
   //drupal_add_css($admin_css);
 
   //Includes functions for connecting to Solr and Luke.
-  module_load_include('inc', 'islandora_solr_search', 'includes/luke.inc');
+  module_load_include('inc', 'islandora_solr_search', 'includes/luke');
 
   $form['newspaper_landing_page_admin'] = array(
     '#type' => 'fieldset',
@@ -93,8 +93,9 @@ function islandora_newspaper_landing_page_admin_settings($form, &$form_state) {
   $form['newspaper_landing_page_admin']['sort_field'] = array(
     '#type' => 'textfield',
     '#title' => t('Sort Field'),
-    '#size' => 35,
-    '#autocomplete_path' => 'islandora_solr/luke',
+    '#size' => 95,
+    //'#autocomplete_path' => 'islandora_solr/luke',
+    '#autocomplete_path' => 'landing_page/autocomplete_luke',
     //'#default_value' => '',
     '#default_value' => variable_get('islandora_newspaper_landing_page_sort_field', "PARENT_dateIssued_dt"),
     '#description' => t('Set the sort field of the "All front pages" search result'),
@@ -277,7 +278,7 @@ function islandora_newspaper_landing_page_admin_settings_submit($form, &$form_st
  * @return json
  *   A json array containing the Solr luke values that contain the given string.
  */
-function _islandora_solr_autocomplete_luke($string = '') {
+function _islandora_newspaper_landing_page_autocomplete_luke($string = '') {
 
   $luke = islandora_solr_get_luke();
   $result = array();

@@ -7,3 +7,4 @@ configure = admin/islandora/landing_page
 stylesheets[all][] = css/islandora_newspaper_landing_page.css
 dependencies[] = islandora
 dependencies[] = islandora_newspaper
+dependencies[] = islandora_solr_search
