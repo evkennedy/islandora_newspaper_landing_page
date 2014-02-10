@@ -185,9 +185,11 @@
         <?php print $variables['mods']['prospectus']; ?>
       </p>
     </div>
-    <div class="readandmore">
-      <a href="#" class="more">Read more...</a>
-    </div>
+    <?php if (strlen($variables['mods']['prospectus']) > 475): ?>
+      <div class="readandmore">
+        <a href="#" class="more">Read more...</a>
+      </div>
+    <?php endif; ?>
   <?php endif; ?>
   <!-- Right side bar ends. -->
 
